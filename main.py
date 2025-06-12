@@ -206,7 +206,7 @@ async def universal_handler(message: Message, **kwargs):
 # === SYMPTOM REGISTRATION HANDLERS ===
 @router.callback_query(F.data.startswith("symptom:"))
 async def ask_severity(callback: CallbackQuery):
-    if callback.from_user.id != AUTHORIZED_USER_ID:
+    if callback.from_user.id not in AUTHORIZED_USER_IDS:
         await callback.answer("⛔️ Нет доступа", show_alert=True)
         return
     symptom = callback.data.split(":")[1]
@@ -219,7 +219,7 @@ async def ask_severity(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("severity:"))
 async def save_symptom(callback: CallbackQuery):
-    if callback.from_user.id != AUTHORIZED_USER_ID:
+    if callback.from_user.id not in AUTHORIZED_USER_IDS:
         await callback.answer("⛔️ Нет доступа", show_alert=True)
         return
     _, symptom, severity = callback.data.split(":")
