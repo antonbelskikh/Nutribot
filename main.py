@@ -16,7 +16,7 @@ from aiogram.filters import Command
 
 # === LOAD ENV ===
 load_dotenv()
-AUTHORIZED_USER_IDS = int(os.getenv("AUTHORIZED_USER_IDS"))
+AUTHORIZED_USER_IDS = [int(id.strip()) for id in os.getenv("AUTHORIZED_USER_IDS", "").split(",") if id.strip().isdigit()]
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ASSISTANT_ID = os.getenv("ASSISTANT_ID")
@@ -56,7 +56,7 @@ def write_symptom_to_sheet(data_row: list):
     sheet.append_row(data_row)
 
 def is_authorized(message: Message) -> bool:
-    return message.from_user.id == AUTHORIZED_USER_IDS
+    return message.from_user.id in AUTHORIZED_USER_IDS
 
 
 # === COMMAND /dish ===
@@ -206,7 +206,7 @@ async def universal_handler(message: Message, **kwargs):
 # === SYMPTOM REGISTRATION HANDLERS ===
 @router.callback_query(F.data.startswith("symptom:"))
 async def ask_severity(callback: CallbackQuery):
-    if callback.from_user.id not in AUTHORIZED_USER_IDS:
+    if callback.from_user.id not in (AUTHORIZED_USER_IDS if isinstance(AUTHORIZED_USER_IDS, list) else [AUTHORIZED_USER_IDS]):
         await callback.answer("⛔️ Нет доступа", show_alert=True)
         return
     symptom = callback.data.split(":")[1]
@@ -219,7 +219,7 @@ async def ask_severity(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("severity:"))
 async def save_symptom(callback: CallbackQuery):
-    if callback.from_user.id not in AUTHORIZED_USER_IDS:
+    if callback.from_user.id not in (AUTHORIZED_USER_IDS if isinstance(AUTHORIZED_USER_IDS, list) else [AUTHORIZED_USER_IDS]):
         await callback.answer("⛔️ Нет доступа", show_alert=True)
         return
     _, symptom, severity = callback.data.split(":")
